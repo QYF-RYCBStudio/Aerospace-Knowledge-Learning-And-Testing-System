@@ -123,4 +123,4 @@ if __name__ == "__main__":
 
 ````
 
-[here]:https://github.com/QYF-RYCBStudio/Aerospace-Knowledge-Question-Answering-System/releases/tag/1.0
+[here]:https://github.com/QYF-RYCBStudio/Aerospace-Knowledge-Question-Answering-System/releases
