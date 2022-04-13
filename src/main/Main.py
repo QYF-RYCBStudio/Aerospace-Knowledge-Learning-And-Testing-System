@@ -1,8 +1,10 @@
 # Author: RYCB studio
 # -*- coding:utf-8 -*-
+
+
 # MIT License
 #
-# Copyright (c) 2021 RYCBStudio
+# Copyright (c) 2022 RYCBStudio
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,14 +23,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import os
+
+
 import warnings
 
 warnings.filterwarnings("ignore")
+
 import configparser
 from fuzzywuzzy import fuzz
 import sys
-
 import easygui as eg
 import datetime
 
@@ -38,8 +41,18 @@ cfps = configparser.ConfigParser()
 
 def main():
     init()
-    # account()
-    ex = exercises().__init__()
+    a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习","做题","退出"],image='./yy.png')
+    while a!="退出":
+        if a == "学习":
+            questions()
+            a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题","退出"],image='./yy.png')
+        elif a == "做题":
+            exercises()
+            a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题","退出"],image='./yy.png')
+        else:
+            a="学习"
+    else:
+        sys.exit(0)
 
 
 def init():
@@ -47,99 +60,82 @@ def init():
         w.write("")
     log("Program is Initializing...")
     log("Loading Module ConfigParser...")
+    eg.msgbox("\t\t\t 【 航天知识学习检测系统V1.5 】", "qyf-rycbstudio.github.io", ok_button="下一步",image='./yy2.png')
+    log("The Program has been started.")
+
+
+def questions():
     try:
         cfps.read("config.cfg", encoding="GBK")
         log("Module ConfigParser is Loaded.")
-    except:
+    except ModuleNotFoundError:
         log("Module ConfigParser isn't Loaded.")
-    eg.msgbox("\t\t\t    欢迎进入航天知识问答系统", "qyf-rycbstudio.github.io", ok_button="下一步")
+    except UnicodeError or UnicodeEncodeError:
+        cfps.read("config.cfg", encoding="UTF-8")
+        log("Module ConfigParser is Loaded.")
+    log("Now choice: Normal Exercise")
+    ex_content = eval(cfps['exercise']["ex_dict"])
+    log("Dictionaries are showing...")
+    choices = eg.buttonbox("请选择序号学习相关知识：", "qyf-rycbstudio.github.io",
+                           ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], image="./ques.png")
+    if choices != "./ques.png":
+        try:
+            eg.msgbox(ex_content[choices])
+        except:
+            init()
+    else:
+        pass
+    ex = eg.ccbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"], image="./ques.png")
+    #ex = eg.ccbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"])
+    if ex:
+        questions()
+        log('The user had chose choice "next".')
+    else:
+        log('The user had chose choice "exit".')
+        
+        return 
 
 
-def account():
-    log("Now choice: Create a Account.")
-    eg.msgbox("\t\t\t\t创建一个账户", "qyf-rycbstudio.github.io", ok_button="下一步")
-    res = eg.enterbox("请输入用户名", "qyf-rycbstudio.github.io")
+def exercises():
     try:
+        cfps.read("exercises.cfg", encoding="GBK")
+        log("Module ConfigParser is Loaded.")
+    except ModuleNotFoundError:
+        log("Module ConfigParser isn't Loaded.")
+    except UnicodeError or UnicodeEncodeError:
+        cfps.read("exercises.cfg", encoding="UTF-8")
+        log("Module ConfigParser is Loaded.")
+    global fuzz_res
+    choices = ["A", "B", "C"]
+    eg.msgbox("题目开始！", "qyf-rycbstudio.github.io", "Start！", image="./ans.png")
+    log("Now choice: Normal Exercise")
+    ex_content = eval(cfps['exercise']["ex_dict"])
+    answer = []
+    log("Exercises are showing...")
+    for i in ex_content:
         try:
-            try:
-                cfps.set("Users", "username", res)
-                cfps.write(open("config.cfg", "w"))
-            except IndexError:
-                log("Index Error:Err111", "fatal")
-            except KeyError as k:
-                log("Unknown Error:Err405    Detailed information:" + str(k), "fatal")
-                sys.exit()
-            except configparser.NoSectionError as NSE:
-                log("Unknown Error:Err405    Detailed information:" + str(NSE), "fatal")
-                sys.exit()
-        except ValueError:
-            pass
-        res = eg.enterbox("请输入用户密码", "qyf-rycbstudio.github.io")
-        try:
-            try:
-                cfps.set("Users", "userpwd", res)
-                cfps.write(open("config.cfg", "w"))
-            except IndexError:
-                log("Index Error:Err111", "fatal")
-        except ValueError:
-            pass
-    except KeyError as k:
-        log("Unknown Error:Err405 " + str(k), "fatal")
-        sys.exit()
-
-
-class exercises():
-    def __init__(self, wans, nans, ):
-        self.with_answer = wans
-        self.no_answer = nans
-
-    def with_answer(self):
-        eg.msgbox("题目开始！", "qyf-rycbstudio.github.io", "Start！")
-        log("Now choice: Normal Exercise But with Answers")
-        ex_content = eval(cfps['exercise']["ex_dict"])
-        answer = []
-        log("Exercises are showing...")
-        ans = eval(cfps["exercise"]["ex_ans"])
-        for v in range(1, len(ans) + 1):
-            try:
-                res = eg.buttonbox("第" + str(v) + "题：" + ex_content[str(v)], "qyf-rycbstudio.github.io", ans[str(v)])
-                answer.append(res)
-            except KeyError as k:
-                log("KeyError:" + str(k), "fatal")
-        log("Judging...")
-        print(str(ans), "\n", str(answer))
-        k = 0
-        for v in range(len(answer)):
-            for k in range(1, len(ans) + 1):
-                print("用户答案\t" + answer[int(v)] + "\n与\n" + "标准答案\t" + ans[str(k + 1)])
-                print("比较结果为：", end="")
-                fuzz_res = fuzz.ratio(answer[int(v)], ans[str(k)])
-                print(str(fuzz_res) + "%")
-                break
-
-    def no_answer(self):
-        eg.msgbox("题目开始！", "qyf-rycbstudio.github.io", "Start！")
-        log("Now choice: Normal Exercise")
-        ex_content = eval(cfps['exercise']["ex_dict"])
-        answer = []
-        log("Exercises are showing...")
-        for i in ex_content:
-            try:
-                res = eg.enterbox("第" + str(i) + "题：" + ex_content[str(i)], "qyf-rycbstudio.github.io", "")
-                answer.append(res)
-            except KeyError as k:
-                log(str(k), "fatal")
-        log("Judging...")
-        ans = eval(cfps["exercise"]["ex_ans"])
-        print(str(ans), "\n", str(answer))
-        k = 0
-        for v in range(len(answer)):
-            for k in range(len(ans)):
-                print(answer[int(v)])
-                fuzz_res = fuzz.ratio(answer[int(v)], ans[str(k + 1)])
-                cfps.set("Users", "usermarks", str(fuzz_res))
-                break
-
+            res = eg.buttonbox("第" + str(i) + "题：(滑动鼠标滚轮可以查看C选项)" + ex_content[str(i)], "qyf-rycbstudio.github.io",
+                               choices)
+            answer.append(res)
+        except KeyError as k:
+            log(str(k), "fatal")
+    log("Judging...")
+    ans = eval(cfps["exercise"]["ex_ans"])
+    vk = 0
+    wrong = []
+    for v in range(len(answer)):
+        for k in range(len(ans)):
+            fuzz_res = fuzz.ratio(answer[int(v)], ans[str(k + 1)]) / 10
+            vk += fuzz_res
+            cfps.set("Users", "usermarks", str(fuzz_res))
+            cfps.write(open("exercises.cfg", "w"))
+            if fuzz_res == 0:
+                wrong.append("第"+str(v+1)+"题   您的答案："+answer[int(v)]+";  正确答案："+ans[str(k + 1)])
+            else:
+                pass
+            break
+    eg.msgbox("您的分数：" + str(vk), "qyf-rycbstudio.github.io")
+    ex = eg.ccbox("错误题号："+str(wrong),"qyf-rycbstudio.github.io",["继续","退出"])
 
 def log(data, level="info", type="client"):
     with open("logs/RYCBStudio-Log.log", "a") as f:
@@ -166,14 +162,6 @@ def log(data, level="info", type="client"):
                 f.write("[Server/FATAL] " + '[' + Nowtime + '] ' + str(data) + "\n")
             elif level == "crash":
                 f.write("[Server/CRASH_REPORT] " + '[' + Nowtime + '] ' + str(data) + "\n")
-
-
-def crash_log(data):
-    Nowtime = dt.strftime("%Y-%m-%d-%H-%M-%S")
-    with open("crash-reports/Crash-Report " + Nowtime + ".log", "w") as c:
-        c.write("")
-    with open("crash-reports/Crash-Report " + Nowtime + ".log", "a") as c:
-        c.write(data + "\n")
 
 
 if __name__ == "__main__":
