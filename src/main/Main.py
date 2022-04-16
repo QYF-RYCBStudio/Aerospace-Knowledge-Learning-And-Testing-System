@@ -41,16 +41,16 @@ cfps = configparser.ConfigParser()
 
 def main():
     init()
-    a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习","做题","退出"],image='./yy.png')
-    while a!="退出":
+    a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题", "退出"], image='./yy.png')
+    while a != "退出":
         if a == "学习":
             questions()
-            a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题","退出"],image='./yy.png')
+            a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题", "退出"], image='./yy.png')
         elif a == "做题":
             exercises()
-            a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题","退出"],image='./yy.png')
+            a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题", "退出"], image='./yy.png')
         else:
-            a="学习"
+            a = "学习"
     else:
         sys.exit(0)
 
@@ -60,7 +60,7 @@ def init():
         w.write("")
     log("Program is Initializing...")
     log("Loading Module ConfigParser...")
-    eg.msgbox("\t\t\t 【 航天知识学习检测系统V1.5 】", "qyf-rycbstudio.github.io", ok_button="下一步",image='./yy2.png')
+    eg.msgbox("\t\t\t 【 航天知识学习检测系统V1.5 】", "qyf-rycbstudio.github.io", ok_button="下一步", image='./yy2.png')
     log("The Program has been started.")
 
 
@@ -84,16 +84,17 @@ def questions():
         except:
             init()
     else:
-        pass
-    ex = eg.ccbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"], image="./ques.png")
-    #ex = eg.ccbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"])
-    if ex:
+        questions()
+    ex = eg.buttonbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"], image="./ques.png")
+    # ex = eg.ccbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"])
+    if ex == "继续":
         questions()
         log('The user had chose choice "next".')
+    elif ex == "./ques.png":
+        init()
     else:
         log('The user had chose choice "exit".')
-        
-        return 
+        main()
 
 
 def exercises():
@@ -130,12 +131,13 @@ def exercises():
             cfps.set("Users", "usermarks", str(fuzz_res))
             cfps.write(open("exercises.cfg", "w"))
             if fuzz_res == 0:
-                wrong.append("第"+str(v+1)+"题   您的答案："+answer[int(v)]+";  正确答案："+ans[str(k + 1)])
+                wrong.append("第" + str(v + 1) + "题   您的答案：" + answer[int(v)] + ";  正确答案：" + ans[str(k + 1)])
             else:
                 pass
             break
     eg.msgbox("您的分数：" + str(vk), "qyf-rycbstudio.github.io")
-    ex = eg.ccbox("错误题号："+str(wrong),"qyf-rycbstudio.github.io",["继续","退出"])
+    ex = eg.ccbox("错误题号：" + str(wrong), "qyf-rycbstudio.github.io", ["继续", "退出"])
+
 
 def log(data, level="info", type="client"):
     with open("logs/RYCBStudio-Log.log", "a") as f:
