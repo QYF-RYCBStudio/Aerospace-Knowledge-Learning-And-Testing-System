@@ -1,5 +1,6 @@
 # Author: RYCB studio
 # -*- coding:utf-8 -*-
+# Version 1.5.2-a
 
 
 # MIT License
@@ -31,28 +32,60 @@ warnings.filterwarnings("ignore")
 
 import configparser
 from fuzzywuzzy import fuzz
-import sys
+import urllib.request as ur
 import easygui as eg
 import datetime
+import webbrowser as wb
 
 dt = datetime.datetime.now()
 cfps = configparser.ConfigParser()
 
 
+def checkForUpdates(serverName):
+    cfps.read("update\\update.ucf")
+    ur.urlretrieve("{}/latestVersion".format(serverName), "version")
+    humanReadableVersion = cfps.get("Version", "version")
+    machineReadableVersion = cfps.get("programSelfCheck", "version")
+    with open("update\\version", "r") as v:
+        v = v.readline().strip()
+        if humanReadableVersion == v or machineReadableVersion == v:
+            eg.msgbox("Congratulations! Your program version is the latest version!\n恭喜！您的程序版本是最新版本！")
+        else:
+            cc = eg.choicebox(
+                "Oops! Your program version is not the latest version. You have two options:\n抱歉！您的程序版本不是最新版，您有两种选择：",
+                "qyf-rycbstudio.github.io", ["Download the latest version\t下载最新版本", "No, thanks\t不了，谢谢"])
+            if cc == "Download the latest version\t下载最新版本":
+                cc1 = eg.choicebox("You have two options:",
+                                   "qyf-rycbstudio.github.io",
+                                   ["Let the program download the latest version\t让程序下载最新版本", "Manual Download\t手动下载"])
+                if cc1 == "Let the program download the latest version\t让程序下载最新版本":
+                    pass
+                else:
+                    eg.msgbox("Please go to the website to download\n请前往网页下载")
+                    wb.open(
+                        "https://github.com/QYF-RYCBStudio/Aerospace-Knowledge-Learning-And-Testing-System/releases")
+            else:
+                pass
+
+
 def main():
     init()
-    a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题", "退出"], image='./yy.png')
+    a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题", "检查更新", "退出"], image='.\\yy.png')
     while a != "退出":
         if a == "学习":
             questions()
-            a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题", "退出"], image='./yy.png')
+            a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题", "检查更新", "退出"], image='.\\yy.png')
         elif a == "做题":
             exercises()
-            a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题", "退出"], image='./yy.png')
-        else:
-            a = "学习"
+            a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题", "检查更新", "退出"], image='.\\yy.png')
+        elif a == "检查更新":
+            checkForUpdates("https://raw.githubusercontent.com/QYF-RYCBStudio/Aerospace-Knowledge-Learning-And-Testing-System/main/")
+            main()
     else:
-        sys.exit(0)
+        if eg.ynbox("确定退出吗？", "qyf-rycbstudio.github.io"):
+            quit()
+        else:
+            main()
 
 
 def init():
@@ -60,7 +93,7 @@ def init():
         w.write("")
     log("Program is Initializing...")
     log("Loading Module ConfigParser...")
-    eg.msgbox("\t\t\t 【 航天知识学习检测系统V1.5 】", "qyf-rycbstudio.github.io", ok_button="下一步", image='./yy2.png')
+    eg.msgbox("\t\t\t 【 航天知识学习检测系统V1.5.1】", "qyf-rycbstudio.github.io", ok_button="下一步", image='.\\yy2.png')
     log("The Program has been started.")
 
 
@@ -77,21 +110,21 @@ def questions():
     ex_content = eval(cfps['exercise']["ex_dict"])
     log("Dictionaries are showing...")
     choices = eg.buttonbox("请选择序号学习相关知识：", "qyf-rycbstudio.github.io",
-                           ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], image="./ques.png")
-    if choices != "./ques.png":
+                           ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], image=".\\ques.png")
+    if choices != ".\\ques.png":
         try:
             eg.msgbox(ex_content[choices])
         except:
             init()
     else:
         questions()
-    ex = eg.buttonbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"], image="./ques.png")
+    ex = eg.buttonbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"], image=".\\ques.png")
     # ex = eg.ccbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"])
     if ex == "继续":
         questions()
         log('The user had chose choice "next".')
-    elif ex == "./ques.png":
-        init()
+    elif ex == ".\\ques.png":
+        questions()
     else:
         log('The user had chose choice "exit".')
         main()
@@ -108,7 +141,7 @@ def exercises():
         log("Module ConfigParser is Loaded.")
     global fuzz_res
     choices = ["A", "B", "C"]
-    eg.msgbox("题目开始！", "qyf-rycbstudio.github.io", "Start！", image="./ans.png")
+    eg.msgbox("题目开始！", "qyf-rycbstudio.github.io", "Start！", image=".\\ans.png")
     log("Now choice: Normal Exercise")
     ex_content = eval(cfps['exercise']["ex_dict"])
     answer = []
