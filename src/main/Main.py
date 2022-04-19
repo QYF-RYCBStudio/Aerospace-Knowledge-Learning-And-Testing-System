@@ -24,26 +24,31 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-
+import random
 import warnings
 
 warnings.filterwarnings("ignore")
 
 import configparser
 from fuzzywuzzy import fuzz
+var = {'User-Agent': 'Mozilla/5.0 3578.98 Safari/537.36'}
 import urllib.request as ur
 import easygui as eg
 import datetime
 import webbrowser as wb
+import ssl
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 dt = datetime.datetime.now()
 cfps = configparser.ConfigParser()
 
 
-def checkForUpdates(serverName):
+def checkForUpdates(rawServerName, serverName):
     cfps.read("update\\update.ucf")
-    ur.urlretrieve("{}/latestVersion".format(serverName), "version")
+    if rawServerName == "https://gitee.com/RYCBStudio/Aerospace-Knowledge-Question-Answering-System/raw/main/latestVersion":
+        url = ur.Request(rawServerName, headers=var)
+        ur.urlretrieve(url, ".\\update\\version")
     humanReadableVersion = cfps.get("Version", "version")
     machineReadableVersion = cfps.get("programSelfCheck", "version")
     with open("update\\version", "r") as v:
@@ -62,8 +67,7 @@ def checkForUpdates(serverName):
                     pass
                 else:
                     eg.msgbox("Please go to the website to download\n请前往网页下载")
-                    wb.open(
-                        "https://github.com/QYF-RYCBStudio/Aerospace-Knowledge-Learning-And-Testing-System/releases")
+                    wb.open(serverName + "releases")
             else:
                 pass
 
@@ -79,7 +83,13 @@ def main():
             exercises()
             a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题", "检查更新", "退出"], image='.\\yy.png')
         elif a == "检查更新":
-            checkForUpdates("https://raw.githubusercontent.com/QYF-RYCBStudio/Aerospace-Knowledge-Learning-And-Testing-System/main/")
+            choice = eg.buttonbox("请选择版本检查器存放位置：", "qyf-rycbstudio.github.io", ["Github（国外）（可能会报错）", "Gitee（国内镜像）(稳定）"])
+            if choice == "Github（国外）（可能会报错）":
+                checkForUpdates("https://raw.githubusercontent.com/QYF-RYCBStudio/Aerospace-Knowledge-Learning-And-Testing-System/", "https://github.com/QYF-RYCBStudio/Aerospace-Knowledge-Learning-And-Testing-System/")
+            elif choice == "Gitee（国内镜像）(稳定）":
+                checkForUpdates("https://gitee.com/RYCBStudio/Aerospace-Knowledge-Question-Answering-System/raw/main/latestVersion", "https://gitee.com/RYCBStudio/Aerospace-Knowledge-Question-Answering-System/")
+            else:
+                a = "检查更新"
             main()
     else:
         if eg.ynbox("确定退出吗？", "qyf-rycbstudio.github.io"):
@@ -146,13 +156,18 @@ def exercises():
     ex_content = eval(cfps['exercise']["ex_dict"])
     answer = []
     log("Exercises are showing...")
-    for i in ex_content:
-        try:
-            res = eg.buttonbox("第" + str(i) + "题：(滑动鼠标滚轮可以查看C选项)" + ex_content[str(i)], "qyf-rycbstudio.github.io",
-                               choices)
-            answer.append(res)
-        except KeyError as k:
-            log(str(k), "fatal")
+    for k in ex_content:
+        i = random.randint(0, 49)
+        for j in range(10):
+            try:
+                res = eg.buttonbox("第" + str(i) + "题：(滑动鼠标滚轮可以查看C选项)" + ex_content[str(i)], "qyf-rycbstudio.github.io",
+                                   choices)
+                answer.append(res)
+                break
+            except KeyError as k:
+                log(str(k), "fatal")
+        else:
+            break
     log("Judging...")
     ans = eval(cfps["exercise"]["ex_ans"])
     vk = 0
