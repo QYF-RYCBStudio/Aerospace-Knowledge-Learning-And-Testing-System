@@ -25,13 +25,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import random
+import socket
+import urllib
 import warnings
+import webbrowser
 
 warnings.filterwarnings("ignore")
 
 import configparser
 from fuzzywuzzy import fuzz
-var = {'User-Agent': 'Mozilla/5.0 3578.98 Safari/537.36'}
 import urllib.request as ur
 import easygui as eg
 import datetime
@@ -47,11 +49,25 @@ cfps = configparser.ConfigParser()
 def checkForUpdates(rawServerName, serverName):
     cfps.read("update\\update.ucf")
     if rawServerName == "https://gitee.com/RYCBStudio/Aerospace-Knowledge-Question-Answering-System/raw/main/latestVersion":
-        url = ur.Request(rawServerName, headers=var)
-        ur.urlretrieve(url, ".\\update\\version")
+        headers = {"Accept-Language": "zh-CN",
+                   "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36 Edg/100.0.1185.44"}
+        url = ur.Request(rawServerName, headers=headers)
+        res = ur.urlopen(url, timeout=10).read().decode("UTF-8")
+        with open(".\\update\\version", "w+") as f:
+            f.write(res)
+    else:
+        try:
+            ur.urlretrieve("{}/main/latestVersion".format(rawServerName), ".\\update\\version")
+        except socket.gaierror as e:
+            log("Error: " + str(e), "fatal", "Server")
+            main()
+        except Exception as e:
+            log("Error: Unknown error, please submit the BUG!\t\tBUG Type:{}".format(str(e)), "fatal", "Server")
+            main()
+
     humanReadableVersion = cfps.get("Version", "version")
     machineReadableVersion = cfps.get("programSelfCheck", "version")
-    with open("update\\version", "r") as v:
+    with open(".\\update\\version", "r") as v:
         v = v.readline().strip()
         if humanReadableVersion == v or machineReadableVersion == v:
             eg.msgbox("Congratulations! Your program version is the latest version!\n恭喜！您的程序版本是最新版本！")
@@ -74,25 +90,49 @@ def checkForUpdates(rawServerName, serverName):
 
 def main():
     init()
-    a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题", "检查更新", "退出"], image='.\\yy.png')
-    while a != "退出":
-        if a == "学习":
+    choice = ["学习", "做题", "检查更新", "网上资源", "退出"]
+    a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", choice, image=".\\yy.png")
+    while a != choice[4]:
+        if a == choice[0]:
             questions()
-            a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题", "检查更新", "退出"], image='.\\yy.png')
-        elif a == "做题":
+            a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", choice, image=".\\yy.png")
+        elif a == choice[1]:
             exercises()
-            a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", ["学习", "做题", "检查更新", "退出"], image='.\\yy.png')
-        elif a == "检查更新":
-            choice = eg.buttonbox("请选择版本检查器存放位置：", "qyf-rycbstudio.github.io", ["Github（国外）（可能会报错）", "Gitee（国内镜像）(稳定）"])
+            a = eg.buttonbox("请选择:", "qyf-rycbstudio.github.io", choice, image=".\\yy.png")
+        elif a == choice[2]:
+            choice = eg.buttonbox("请选择版本检查器存放位置：", "qyf-rycbstudio.github.io",
+                                  ["Github（国外）（可能会报错）", "Gitee（国内镜像）(WIP）"])
             if choice == "Github（国外）（可能会报错）":
-                checkForUpdates("https://raw.githubusercontent.com/QYF-RYCBStudio/Aerospace-Knowledge-Learning-And-Testing-System/", "https://github.com/QYF-RYCBStudio/Aerospace-Knowledge-Learning-And-Testing-System/")
-            elif choice == "Gitee（国内镜像）(稳定）":
-                checkForUpdates("https://gitee.com/RYCBStudio/Aerospace-Knowledge-Question-Answering-System/raw/main/latestVersion", "https://gitee.com/RYCBStudio/Aerospace-Knowledge-Question-Answering-System/")
+                checkForUpdates(
+                    "https://raw.githubusercontent.com/QYF-RYCBStudio/Aerospace-Knowledge-Learning-And-Testing-System/",
+                    "https://github.com/QYF-RYCBStudio/Aerospace-Knowledge-Learning-And-Testing-System/")
+            elif choice == "Gitee（国内镜像）(WIP）":
+                # checkForUpdates("https://gitee.com/RYCBStudio/Aerospace-Knowledge-Question-Answering-System/raw/main/latestVersion","https://gitee.com/RYCBStudio/Aerospace-Knowledge-Question-Answering-System/")
+                pass
             else:
-                a = "检查更新"
+                a = choice[2]
+            main()
+        elif a == choice[3]:
+            buttons = ["资源集锦", "网上航天科普", "航天文化", "中国航天科普", "航空航天_科普中国网"]
+            res = eg.buttonbox("请选择资源内容: ", "qyf-rycbstudio.github.io", buttons)
+            if res == buttons[0]:
+                webbrowser.open(
+                    "https://gitee.com/RYCBStudio/Aerospace-Knowledge-Question-Answering-System/tree/main/resources",
+                    autoraise=True)
+            elif res == buttons[1]:
+                webbrowser.open("http://www.cmse.gov.cn/kpjy/kphd/", autoraise=True)
+            elif res == buttons[2]:
+                webbrowser.open("http://www.spacechina.com/n25/n148/index.html", autoraise=True)
+            elif res == buttons[3]:
+                webbrowser.open("http://www.spacemore.com.cn/", autoraise=True)
+            elif res == buttons[4]:
+                webbrowser.open("https://www.kepuchina.cn/ldyy/theme/mil/03/", autoraise=True)
+            else:
+                main()
+        else:
             main()
     else:
-        if eg.ynbox("确定退出吗？", "qyf-rycbstudio.github.io"):
+        if eg.ynbox("确定退出吗？", "qyf-rycbstudio.github.io", ["确认(F1)", "取消(F2)"]):
             quit()
         else:
             main()
@@ -103,7 +143,7 @@ def init():
         w.write("")
     log("Program is Initializing...")
     log("Loading Module ConfigParser...")
-    eg.msgbox("\t\t\t 【 航天知识学习检测系统V1.5.1】", "qyf-rycbstudio.github.io", ok_button="下一步", image='.\\yy2.png')
+    eg.msgbox("\t\t\t 【 航天知识学习检测系统v1.5.2-β】", "qyf-rycbstudio.github.io", ok_button="下一步", image=".\\yy2.png")
     log("The Program has been started.")
 
 
@@ -120,24 +160,24 @@ def questions():
     ex_content = eval(cfps['exercise']["ex_dict"])
     log("Dictionaries are showing...")
     choices = eg.buttonbox("请选择序号学习相关知识：", "qyf-rycbstudio.github.io",
-                           ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], image=".\\ques.png")
+                           ["航天十问", "航空常识", "空间技术", "载人航天", "人造卫星", "航天工程", "宇航生活"], image=".\\ques.png")
     if choices != ".\\ques.png":
         try:
-            eg.msgbox(ex_content[choices])
+            eg.msgbox(ex_content[choices], ok_button="返回", title="qyf-rycbstudio.github.io")
         except:
             init()
     else:
         questions()
-    ex = eg.buttonbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"], image=".\\ques.png")
-    # ex = eg.ccbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"])
-    if ex == "继续":
-        questions()
-        log('The user had chose choice "next".')
-    elif ex == ".\\ques.png":
-        questions()
-    else:
-        log('The user had chose choice "exit".')
-        main()
+    # ex = eg.buttonbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"], image=".\\ques.png")
+    # # ex = eg.ccbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"])
+    # if ex == "继续":
+    #     questions()
+    #     log('The user had chose choice "next".')
+    # elif ex == ".\\ques.png":
+    #     questions()
+    # else:
+    #     log('The user had chose choice "exit".')
+    #     main()
 
 
 def exercises():
@@ -149,37 +189,42 @@ def exercises():
     except UnicodeError or UnicodeEncodeError:
         cfps.read("exercises.cfg", encoding="UTF-8")
         log("Module ConfigParser is Loaded.")
-    global fuzz_res
+    global fuzz_res, k
     choices = ["A", "B", "C"]
     eg.msgbox("题目开始！", "qyf-rycbstudio.github.io", "Start！", image=".\\ans.png")
     log("Now choice: Normal Exercise")
-    ex_content = eval(cfps['exercise']["ex_dict"])
+    ex_content = eval(cfps["exercise"]["ex_dict"])
     answer = []
     log("Exercises are showing...")
-    for k in ex_content:
+    for k in range(10):
         i = random.randint(0, 49)
         for j in range(10):
             try:
-                res = eg.buttonbox("第" + str(i) + "题：(滑动鼠标滚轮可以查看C选项)" + ex_content[str(i)], "qyf-rycbstudio.github.io",
+                res = eg.buttonbox("第" + str(k + 1) + "题：" + ex_content[str(i)], "qyf-rycbstudio.github.io",
                                    choices)
-                answer.append(res)
-                break
+                if res is not None:
+                    answer.append(res)
+                    break
+                else:
+                    continue
             except KeyError as k:
                 log(str(k), "fatal")
+            except NameError as n:
+                log(str(n), "fatal")
         else:
             break
     log("Judging...")
-    ans = eval(cfps["exercise"]["ex_ans"])
+    ans = dict(eval((cfps["exercise"]["ex_ans"])))
     vk = 0
     wrong = []
     for v in range(len(answer)):
         for k in range(len(ans)):
-            fuzz_res = fuzz.ratio(answer[int(v)], ans[str(k + 1)]) / 10
+            fuzz_res = fuzz.ratio(answer[int(v)], ans[str(v + 1)]) / 10
             vk += fuzz_res
             cfps.set("Users", "usermarks", str(fuzz_res))
             cfps.write(open("exercises.cfg", "w"))
             if fuzz_res == 0:
-                wrong.append("第" + str(v + 1) + "题   您的答案：" + answer[int(v)] + ";  正确答案：" + ans[str(k + 1)])
+                wrong.append("第" + str(v + 1) + "题   您的答案：" + answer[int(v)] + ";  正确答案：" + ans[str(v + 1)])
             else:
                 pass
             break
@@ -188,30 +233,30 @@ def exercises():
 
 
 def log(data, level="info", type="client"):
-    with open("logs/RYCBStudio-Log.log", "a") as f:
+    with open("logs/RYCBStudio-Log.log", "a+") as f:
         Nowtime = dt.strftime("%Y-%m-%d %T")
         if type == "client":
             if level == "info":
-                f.write("[Client/INFO] " + '[' + Nowtime + '] ' + str(data) + "\n")
+                f.write("[Client/INFO] " + "[" + Nowtime + "] " + str(data) + "\n")
             elif level == "warn":
-                f.write("[Client/WARN] " + '[' + Nowtime + '] ' + str(data) + "\n")
+                f.write("[Client/WARN] " + "[" + Nowtime + "] " + str(data) + "\n")
             elif level == "error":
-                f.write("[Client/ERROR] " + '[' + Nowtime + '] ' + str(data) + "\n")
+                f.write("[Client/ERROR] " + "[" + Nowtime + "] " + str(data) + "\n")
             elif level == "fatal":
-                f.write("[Client/FATAL] " + '[' + Nowtime + '] ' + str(data) + "\n")
+                f.write("[Client/FATAL] " + "[" + Nowtime + "] " + str(data) + "\n")
             elif level == "crash":
-                f.write("[Client/CRASH_REPORT] " + '[' + Nowtime + '] ' + str(data) + "\n")
+                f.write("[Client/CRASH_REPORT] " + "[" + Nowtime + "] " + str(data) + "\n")
         else:
             if level == "info":
-                f.write("[Server/INFO] " + '[' + Nowtime + '] ' + str(data) + "\n")
+                f.write("[Server/INFO] " + "[" + Nowtime + "] " + str(data) + "\n")
             elif level == "warn":
-                f.write("[Server/WARN] " + '[' + Nowtime + '] ' + str(data) + "\n")
+                f.write("[Server/WARN] " + "[" + Nowtime + "] " + str(data) + "\n")
             elif level == "error":
-                f.write("[Server/ERROR] " + '[' + Nowtime + '] ' + str(data) + "\n")
+                f.write("[Server/ERROR] " + "[" + Nowtime + "] " + str(data) + "\n")
             elif level == "fatal":
-                f.write("[Server/FATAL] " + '[' + Nowtime + '] ' + str(data) + "\n")
+                f.write("[Server/FATAL] " + "[" + Nowtime + "] " + str(data) + "\n")
             elif level == "crash":
-                f.write("[Server/CRASH_REPORT] " + '[' + Nowtime + '] ' + str(data) + "\n")
+                f.write("[Server/CRASH_REPORT] " + "[" + Nowtime + "] " + str(data) + "\n")
 
 
 if __name__ == "__main__":
