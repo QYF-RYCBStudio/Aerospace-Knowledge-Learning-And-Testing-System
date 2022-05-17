@@ -1,6 +1,6 @@
 # Author: RYCB studio
 # -*- coding:utf-8 -*-
-# Version 1.5.2-a
+# Version 1.5.2
 
 
 # MIT License
@@ -25,17 +25,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import random
-import socket
-import urllib
+import urllib.request as ur
+from urllib.error import HTTPError, URLError
 import warnings
-import webbrowser
-import sys
 
 warnings.filterwarnings("ignore")
 
 import configparser
 from fuzzywuzzy import fuzz
-import urllib.request as ur
 import easygui as eg
 import datetime
 import webbrowser as wb
@@ -49,27 +46,19 @@ cfps = configparser.ConfigParser()
 
 def checkForUpdates(rawServerName, serverName):
     cfps.read("update\\update.ucf")
-    if rawServerName == "https://gitee.com/RYCBStudio/Aerospace-Knowledge-Question-Answering-System/raw/main/latestVersion":
-        ur.urlretrieve("{}".format(rawServerName), ".\\update\\version")
-##        headers = {"Accept-Language": "zh-CN",
-##                   "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36 Edg/100.0.1185.44"}
-##        url = ur.Request(rawServerName, headers=headers)
-##        res = ur.urlopen(url, timeout=10).read().decode("UTF-8")
-##        with open(".\\update\\version", "w+") as f:
-##            f.write(res)
-    else:
-        try:
-            ur.urlretrieve("{}/main/latestVersion".format(rawServerName), ".\\update\\version")
-        except socket.gaierror as e:
-            log("Error: " + str(e), "fatal", "Server")
-            main()
-        except Exception as e:
-            log("Error: Unknown error, please submit the BUG!\t\tBUG Type:{}".format(str(e)), "fatal", "Server")
-            main()
-
+    try:
+        ur.urlretrieve("{}/main/latestVersion".format(rawServerName), "update\\version")
+    except HTTPError as httpE:
+        eg.msgbox("There are some problems with this program.\nDetailed error information: {}.".format(str(httpE), "Error"))
+        eg.msgbox("This problem will NOT be answered on GitHub.", "Information")
+        main()
+    except URLError as urlE:
+        eg.msgbox("There are some problems with this program.\nDetailed error information: {}.\nPlease open a VPN connection or choose a better location, and then restart this program.".format(str(urlE), "Error"))
+        eg.msgbox("This problem will NOT be answered on GitHub.", "Information")
+        main()
     humanReadableVersion = cfps.get("Version", "version")
     machineReadableVersion = cfps.get("programSelfCheck", "version")
-    with open(".\\update\\version", "r") as v:
+    with open("update\\version", "r") as v:
         v = v.readline().strip()
         if humanReadableVersion == v or machineReadableVersion == v:
             eg.msgbox("Congratulations! Your program version is the latest version!\n恭喜！您的程序版本是最新版本！")
@@ -120,20 +109,20 @@ def main():
             #if res == buttons[0]:
             #     webbrowser.open("https://gitee.com/RYCBStudio/Aerospace-Knowledge-Question-Answering-System/tree/main/resources", autoraise=True)
             if res == buttons[0]:
-                webbrowser.open("http://www.cmse.gov.cn/kpjy/tkkt/tkkt/", autoraise=True)
+                wb.open("http://www.cmse.gov.cn/kpjy/tkkt/tkkt/", autoraise=True)
             elif res == buttons[1]:
-                webbrowser.open("http://www.spacechina.com/n25/n148/n272/n4787/index.html", autoraise=True)   
+                wb.open("http://www.spacechina.com/n25/n148/n272/n4787/index.html", autoraise=True)   
             elif res == buttons[2]:
-                webbrowser.open("http://www.spacemore.com.cn/", autoraise=True)
+                wb.open("http://www.spacemore.com.cn/", autoraise=True)
             elif res == buttons[3]:
-                webbrowser.open("https://moon.bao.ac.cn/", autoraise=True)
+                wb.open("https://moon.bao.ac.cn/", autoraise=True)
             else:
                 main()
         else:
             main()
     else:
-        if eg.ynbox("确定退出吗？", "qyf-rycbstudio.github.io", ["确认(F1)", "取消(F2)"]):
-            sys.exit()
+        if eg.ynbox("确定退出吗？", "qyf-rycbstudio.github.io"):
+            quit()
         else:
             main()
 
@@ -143,7 +132,7 @@ def init():
         w.write("")
     log("Program is Initializing...")
     log("Loading Module ConfigParser...")
-    eg.msgbox("\t\t\t 【 航天知识学习检测系统v1.5.2-β】", "qyf-rycbstudio.github.io", ok_button="下一步", image=".\\pic\\yy2.png")
+    eg.msgbox("\t\t\t 【 航天知识学习检测系统V1.5.2】", "qyf-rycbstudio.github.io", ok_button="下一步", image='.\\pic\\yy2.png')
     log("The Program has been started.")
 
 
@@ -159,25 +148,25 @@ def questions():
     log("Now choice: Normal Exercise")
     ex_content = eval(cfps['exercise']["ex_dict"])
     log("Dictionaries are showing...")
-    choices = eg.buttonbox("请选择你要学习的相关知识：", "qyf-rycbstudio.github.io",
-                           ["航天十问", "航天常识", "载人航天", "人造卫星", "航天工程", "宇航生活"], image=".\\pic\\ques.png")
-    if choices != ".\\ques.png":
+    choices = eg.buttonbox("请选择序号学习相关知识：", "qyf-rycbstudio.github.io",
+                           ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], image=".\\pic\\ques.png")
+    if choices != ".\\pic\\ques.png":
         try:
-            eg.msgbox(ex_content[choices], ok_button="返回", title="qyf-rycbstudio.github.io",root=None)
+            eg.msgbox(ex_content[choices])
         except:
             init()
     else:
         questions()
-    #  ex = eg.buttonbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"], image=".\\pic\\ques.png")
-    #  ex = eg.ccbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"])
-    # if ex == "继续":
-    #     questions()
-    #     log('The user had chose choice "next".')
-    # elif ex == ".\\ques.png":
-    #     questions()
-    # else:
-    #     log('The user had chose choice "exit".')
-    #     main()
+    ex = eg.buttonbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"], image=".\\pic\\ques.png")
+    # ex = eg.ccbox("请选择： ", "qyf-rycbstudio.github.io", ["继续", "返回"])
+    if ex == "继续":
+        questions()
+        log('The user had chose choice "next".')
+    elif ex == ".\\pic\\ques.png":
+        questions()
+    else:
+        log('The user had chose choice "exit".')
+        main()
 
 
 def exercises():
@@ -242,30 +231,30 @@ def exercises():
 
 
 def log(data, level="info", type="client"):
-    with open("logs/RYCBStudio-Log.log", "a+") as f:
+    with open("logs/RYCBStudio-Log.log", "a") as f:
         Nowtime = dt.strftime("%Y-%m-%d %T")
         if type == "client":
             if level == "info":
-                f.write("[Client/INFO] " + "[" + Nowtime + "] " + str(data) + "\n")
+                f.write("[Client/INFO] " + '[' + Nowtime + '] ' + str(data) + "\n")
             elif level == "warn":
-                f.write("[Client/WARN] " + "[" + Nowtime + "] " + str(data) + "\n")
+                f.write("[Client/WARN] " + '[' + Nowtime + '] ' + str(data) + "\n")
             elif level == "error":
-                f.write("[Client/ERROR] " + "[" + Nowtime + "] " + str(data) + "\n")
+                f.write("[Client/ERROR] " + '[' + Nowtime + '] ' + str(data) + "\n")
             elif level == "fatal":
-                f.write("[Client/FATAL] " + "[" + Nowtime + "] " + str(data) + "\n")
+                f.write("[Client/FATAL] " + '[' + Nowtime + '] ' + str(data) + "\n")
             elif level == "crash":
-                f.write("[Client/CRASH_REPORT] " + "[" + Nowtime + "] " + str(data) + "\n")
+                f.write("[Client/CRASH_REPORT] " + '[' + Nowtime + '] ' + str(data) + "\n")
         else:
             if level == "info":
-                f.write("[Server/INFO] " + "[" + Nowtime + "] " + str(data) + "\n")
+                f.write("[Server/INFO] " + '[' + Nowtime + '] ' + str(data) + "\n")
             elif level == "warn":
-                f.write("[Server/WARN] " + "[" + Nowtime + "] " + str(data) + "\n")
+                f.write("[Server/WARN] " + '[' + Nowtime + '] ' + str(data) + "\n")
             elif level == "error":
-                f.write("[Server/ERROR] " + "[" + Nowtime + "] " + str(data) + "\n")
+                f.write("[Server/ERROR] " + '[' + Nowtime + '] ' + str(data) + "\n")
             elif level == "fatal":
-                f.write("[Server/FATAL] " + "[" + Nowtime + "] " + str(data) + "\n")
+                f.write("[Server/FATAL] " + '[' + Nowtime + '] ' + str(data) + "\n")
             elif level == "crash":
-                f.write("[Server/CRASH_REPORT] " + "[" + Nowtime + "] " + str(data) + "\n")
+                f.write("[Server/CRASH_REPORT] " + '[' + Nowtime + '] ' + str(data) + "\n")
 
 
 if __name__ == "__main__":
